@@ -14,3 +14,18 @@ keys
 *.pth
 *.model
 *.ipynb
+*.pyc
+*.pkl
+*.pth
+*.pt
+*.zip
+*.tar.gz
+*.whl
+
+# other
+__pycache__/
+.DS_Store
+.env
+.venv/
+.git/
+.cache/
