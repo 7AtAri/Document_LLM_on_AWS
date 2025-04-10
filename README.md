@@ -1,15 +1,16 @@
 # LLM Document Analysis with AWS
 
-## AWS Technologies used
+## AWS services used
 
 - ECR (Elastic Cloud Repository) for docker containers
-- S3
+- S3 (for storage)
 - Fargate (for deployment of containers)
 
-## Other Modules used
+## framework / tools
 
-- Langchain
-- Faiss
+- llamaindex (for RAG)
+- Faiss ()
+- Langchain (for possible future development)
 
 ## Commands
 
@@ -43,5 +44,7 @@ this should output: Login Succeeded
 docker push <aws_ID...amazonaws.com>
 ```
 
-- set up an S3 bucket for the project and upload the model to it
 - set up ECS Fargate with proper compute and the docker image-URI
+- set up an S3 bucket for the project and upload the model to it
+- in the IAM the ecsTaskExecutionRole needs to be selected and an AmazonS3ReadOnlyAccess permission attatched to it
+(this is needed for the container to read from the S3 buckets)
