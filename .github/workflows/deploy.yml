@@ -26,12 +26,18 @@ jobs:
         uses: aws-actions/amazon-ecr-login@v2
       
       # Step 4: hash previous and current pushes
-      - name: Get the previous and current push hashes
-        id: push_hashes
+      - name: Get latest and previous commit SHAs
         run: |
+          # Fetch full history
+          git fetch --prune --unshallow
+          
+          # Get the latest commit SHA (HEAD)
           latest_push_sha=$(git rev-parse HEAD)
-          previous_push_sha=$(git rev-parse HEAD~$(git rev-list --count HEAD))
-
+          
+          # Get the previous commit SHA (HEAD~1)
+          previous_push_sha=$(git rev-parse HEAD~1)
+          
+          # Output commit SHAs to GitHub Actions environment variables
           echo "latest_push_sha=$latest_push_sha" >> $GITHUB_ENV
           echo "previous_push_sha=$previous_push_sha" >> $GITHUB_ENV
 
