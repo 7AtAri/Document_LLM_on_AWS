@@ -82,8 +82,7 @@ jobs:
             
           new_task_definition=$(echo $task_definition | jq '.taskDefinition | .containerDefinitions[0].image = "${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.ECR_REPOSITORY }}:latest"')
             
-          echo $new_task_definition | jq '{ family: .family, containerDefinitions: .containerDefinitions, requiresCompatibilities: ["FARGATE"], networkMode: "awsvpc", executionRoleArn: .executionRoleArn, cpu: .cpu, memory: .memory}' > updated-task-definition.json
-
+          echo $new_task_definition | jq '{ family: .family, containerDefinitions: .containerDefinitions, requiresCompatibilities: ["FARGATE"], networkMode: "awsvpc", executionRoleArn: .executionRoleArn, taskRoleArn: .taskRoleArn, cpu: .cpu, memory: .memory }' > updated-task-definition.json
           new_task_definition_revision=$(aws ecs register-task-definition --cli-input-json file://updated-task-definition.json --query 'taskDefinition.revision' --output text)
           
           echo "New task definition revision: $new_task_definition_revision"
