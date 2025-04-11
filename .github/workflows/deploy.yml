@@ -26,10 +26,12 @@ jobs:
         uses: aws-actions/amazon-ecr-login@v2
       
       # Step 4: 
-      - name: Build Docker image
+      - name: Build Docker image and tag it
         run: |
           docker build -t ${{ secrets.ECR_REPOSITORY }}:latest .
-      
+          docker tag ${{ secrets.ECR_REPOSITORY }}:latest \
+            ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.ECR_REPOSITORY }}:latest
+          
       - name: get image digest of new built docker image
         id: get_new_image_digest
         run: |
@@ -65,24 +67,15 @@ jobs:
       - name: Push Docker image to ECR if changed
         if: steps.compare_digests.outputs.push_image == 'true'
         run: |
-          # Tag and push the Docker image to ECR if it has changed
-          docker tag ${{ secrets.ECR_REPOSITORY }}:latest \
-            ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.ECR_REPOSITORY }}:latest
-          
           docker push ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.ECR_REPOSITORY }}:latest
         
-      # Step 6: 
-      - name: Tag and Push Docker image to ECR
-        if: env.push_image == 'true'
-        run: |
-          docker tag ${{ secrets.ECR_REPOSITORY }}:latest ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.ECR_REPOSITORY }}:latest
-          docker push ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.ECR_REPOSITORY }}:latest
-  
       # Step 7: Register new ECS task definition revision
-        # - retrieve the current task definition from ECS using the ECS CLI
-        # - update task definition with the new docker image URL
-        # - create new task definition JSON file with updated values
-        # - register the new task definition with ECS
+        # - retrieve current task definition from ECS using ECS CLI
+        # - update task definition with new docker image URL
+        # - create task definition JSON file with updated values
+        # - register new task definition with ECS
+        # - print new task definition revision number
+        # - set new task definition revision number as env variable
       - name: Register new ECS task definition revision
         run: |
           task_definition=$(aws ecs describe-task-definition --task-definition ${{ secrets.ECS_TASK_DEFINITION_NAME }})
@@ -93,6 +86,8 @@ jobs:
   
           new_task_definition_revision=$(aws ecs register-task-definition --cli-input-json file://updated-task-definition.json --query 'taskDefinition.revision' --output text)
           
+          echo "New task definition revision: $new_task_definition_revision"
+          echo "new_task_definition_revision=${new_task_definition_revision}" >> $GITHUB_ENV
       # Step 8: 
       - name: Update ECS service with new task definition
         run: |
