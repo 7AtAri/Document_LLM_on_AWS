@@ -41,30 +41,25 @@ jobs:
           echo "latest_push_sha=$latest_push_sha" >> $GITHUB_ENV
           echo "previous_push_sha=$previous_push_sha" >> $GITHUB_ENV
 
-      # Step 5: list changed files between last two pushes excluding certain files
-      - name: Check for changes to relevant files between pushes
+      - name: Check for changes to Docker-relevant files
         id: check_changes
         run: |
           changed_files=$(git diff --name-only ${{ env.previous_push_sha }} ${{ env.latest_push_sha }} | \
-            grep -Ev '(^\.github/workflows$|^\.dockerignore$|^\.DS_Store$|^README\.md$)')
+            grep -Ev '(^\.github/workflows/|^\.dockerignore$|^\.DS_Store$|^README\.md$)')
+          
           echo "changed_files=$changed_files" >> $GITHUB_ENV
-
-      # Step 6: 
-      - name: set variable if docker files changed
-        id: difference_in_files
-        run: |
-          if echo "${{ env.changed_files }}" | grep -qE '(^Dockerfile$|^.*\.dockerignore$|^.*\.yml$)'; then
-            echo "Docker-related files have changed. Rebuilding the Docker image."
+      
+          if [ -n "$changed_files" ]; then
             echo "build_and_push=true" >> $GITHUB_ENV
           else
-            echo "No changes to Docker-related files. Skipping build."
             echo "build_and_push=false" >> $GITHUB_ENV
           fi
+      
           echo "::set-output name=build_and_push::$(echo $build_and_push)"
 
       # Step 7: Build and Push Docker Image if Needed
       - name: Build Docker image and push to ECR if changed
-        if: steps.difference_in_files.outputs.build_and_push == 'true'
+        if: steps.check_changes.outputs.build_and_push == 'true'
         run: |
           docker build -t ${{ secrets.ECR_REPOSITORY }}:latest .
           docker tag ${{ secrets.ECR_REPOSITORY }}:latest ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.ECR_REPOSITORY }}:latest
@@ -83,8 +78,8 @@ jobs:
             
           new_task_definition=$(echo $task_definition | jq '.taskDefinition | .containerDefinitions[0].image = "${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.ECR_REPOSITORY }}:latest"')
             
-          echo $new_task_definition | jq '{ family: .family, containerDefinitions: .containerDefinitions }' > updated-task-definition.json
-  
+          echo $new_task_definition | jq '{ family: .family, containerDefinitions: .containerDefinitions, requiresCompatibilities: .requiresCompatibilities }' > updated-task-definition.json
+
           new_task_definition_revision=$(aws ecs register-task-definition --cli-input-json file://updated-task-definition.json --query 'taskDefinition.revision' --output text)
           
           echo "New task definition revision: $new_task_definition_revision"
