@@ -48,3 +48,4 @@ docker push <aws_ID...amazonaws.com>
 - set up an S3 bucket for the project and upload the model to it
 - in the IAM the ecsTaskExecutionRole needs to be selected and an AmazonS3ReadOnlyAccess permission attatched to it
 (this is needed for the container to read from the S3 buckets)
+- github action workflow is set up to automate the process and start the ECS deployment of the container
