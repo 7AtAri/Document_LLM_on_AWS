@@ -30,14 +30,57 @@ jobs:
         run: |
           docker build -t ${{ secrets.ECR_REPOSITORY }}:latest .
       
-      # Step 5: Docker image must match the AWS ECR repository
-      - name: Tag Docker image
+      - name: Get the image digest of the latest image in ECR
+        id: get_digest
+        run: |
+          latest_image_digest=$(aws ecr describe-images \
+            --repository-name ${{ secrets.ECR_REPOSITORY }} \
+            --query 'imageDetails[?imageTags[0]==`latest`].imageDigest' \
+            --output text)
+            
+            if [ "$latest_image_digest" == "None" ]; then
+              echo "No previous image found in ECR."
+              latest_image_digest=""
+            fi
+            echo "latest_image_digest=${latest_image_digest}" >> $GITHUB_ENV
+  
+      - name: Get the image digest of the newly built image
+        id: get_new_image_digest
+        run: |
+          # Get the digest of the newly built Docker image
+          new_image_digest=$(docker images --digests ${{ secrets.ECR_REPOSITORY }}:latest --format "{{.Digest}}")
+          
+          # Save the digest to environment variable
+          echo "new_image_digest=${new_image_digest}" >> $GITHUB_ENV
+
+      - name: Compare digests and decide if push is needed
+        id: compare_digests
+        run: |
+          # Compare the digests of the current image in ECR and the new locally built image
+          if [ "$latest_image_digest" != "$new_image_digest" ]; then
+            echo "Image has changed. Pushing new image."
+            echo "push_image=true" >> $GITHUB_ENV
+          else
+            echo "No change in image. Skipping push."
+            echo "push_image=false" >> $GITHUB_ENV
+          
+          # Set output for later use
+          echo "::set-output name=push_image::$(echo $push_image)"
+
+      - name: Push Docker image to ECR if changed
+        if: steps.compare_digests.outputs.push_image == 'true'
+        run: |
+          # Tag and push the Docker image to ECR if it has changed
+          docker tag ${{ secrets.ECR_REPOSITORY }}:latest \
+            ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.ECR_REPOSITORY }}:latest
+          
+          docker push ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.ECR_REPOSITORY }}:latest
+        
+      # Step 6: 
+      - name: Tag and Push Docker image to ECR
+        if: env.push_image == 'true'
         run: |
           docker tag ${{ secrets.ECR_REPOSITORY }}:latest ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.ECR_REPOSITORY }}:latest
-      
-      # Step 6: 
-      - name: Push Docker image to ECR
-        run: |
           docker push ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.ECR_REPOSITORY }}:latest
   
       # Step 7: Register new ECS task definition revision
@@ -59,6 +102,6 @@ jobs:
       - name: Update ECS service with new task definition
         run: |
           aws ecs update-service \
-          --cluster ${{ secrets.ECS_CLUSTER_NAME }} \
-          --service ${{ secrets.ECS_SERVICE_NAME }} \
+          --cluster ${{ secrets.ECS_CLUSTER }} \
+          --service ${{ secrets.ECS_SERVICE }} \
           --task-definition ${{ secrets.ECS_TASK_DEFINITION_NAME }}:$new_task_definition_revision
