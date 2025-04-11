@@ -40,6 +40,9 @@ jobs:
           # Output commit SHAs to GitHub Actions environment variables
           echo "latest_push_sha=$latest_push_sha" >> $GITHUB_ENV
           echo "previous_push_sha=$previous_push_sha" >> $GITHUB_ENV
+          
+          echo "Comparing from ${{ env.previous_push_sha }} to ${{ env.latest_push_sha }}"
+
 
       - name: Check for changes to relevant files
         id: check_changes
