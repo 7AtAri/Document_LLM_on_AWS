@@ -41,9 +41,10 @@ jobs:
           echo "latest_push_sha=$latest_push_sha" >> $GITHUB_ENV
           echo "previous_push_sha=$previous_push_sha" >> $GITHUB_ENV
 
-          echo "Comparing from ${{ env.previous_push_sha }} to ${{ env.latest_push_sha }}"
-          git cat-file commit ${{ env.previous_push_sha }}
-          git cat-file commit ${{ env.latest_push_sha }}
+          # Debugging: output commit details
+          echo "Comparing from $previous_push_sha to $latest_push_sha"
+          git cat-file commit $previous_push_sha
+          git cat-file commit $latest_push_sha
 
       - name: Check for changes to relevant files
         id: check_changes
