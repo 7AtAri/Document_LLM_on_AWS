@@ -26,7 +26,7 @@ jobs:
         uses: aws-actions/amazon-ecr-login@v2
       
       # Step 4: hash previous and current pushes
-      - name: Get latest and previous commit SHAs
+      - name: Get latest and previous push SHAs
         run: |
           # Fetch full history
           git fetch --prune --unshallow
@@ -41,18 +41,14 @@ jobs:
           echo "latest_push_sha=$latest_push_sha" >> $GITHUB_ENV
           echo "previous_push_sha=$previous_push_sha" >> $GITHUB_ENV
 
-          # Debugging: output commit details
-          echo "Comparing from $previous_push_sha to $latest_push_sha"
-          git cat-file commit $previous_push_sha
-          git cat-file commit $latest_push_sha
-
+      # Step 5: 
       - name: Check for changes to relevant files
         id: check_changes
         run: |
           git diff --name-only ${{ env.previous_push_sha }} ${{ env.latest_push_sha }}
 
           changed_files=$(git diff --name-only ${{ env.previous_push_sha }} ${{ env.latest_push_sha }} | \
-            grep -Ev '(^\.github/workflows/|^\.dockerignore$|^\.DS_Store$|^README\.md$)')
+            grep -Ev '(^\.github/workflows/|^\.dockerignore$|^\.DS_Store$|^README\.md$)' || true)
       
           echo "changed_files=$changed_files"
           echo "changed_files=$changed_files" >> $GITHUB_ENV
