@@ -40,13 +40,16 @@ jobs:
           # Output commit SHAs to GitHub Actions environment variables
           echo "latest_push_sha=$latest_push_sha" >> $GITHUB_ENV
           echo "previous_push_sha=$previous_push_sha" >> $GITHUB_ENV
-          
-          echo "Comparing from ${{ env.previous_push_sha }} to ${{ env.latest_push_sha }}"
 
+          echo "Comparing from ${{ env.previous_push_sha }} to ${{ env.latest_push_sha }}"
+          git cat-file commit ${{ env.previous_push_sha }}
+          git cat-file commit ${{ env.latest_push_sha }}
 
       - name: Check for changes to relevant files
         id: check_changes
         run: |
+          git diff --name-only ${{ env.previous_push_sha }} ${{ env.latest_push_sha }}
+
           changed_files=$(git diff --name-only ${{ env.previous_push_sha }} ${{ env.latest_push_sha }} | \
             grep -Ev '(^\.github/workflows/|^\.dockerignore$|^\.DS_Store$|^README\.md$)')
       
