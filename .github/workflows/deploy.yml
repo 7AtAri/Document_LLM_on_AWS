@@ -25,34 +25,40 @@ jobs:
       - name: Log in to Amazon ECR
         uses: aws-actions/amazon-ecr-login@v2
       
-      # Step 4: hash Dockerfile and files in context (for detecting changes)
-      - name: Generate hash of Docker context
+      # Step 4: hash previous and current pushes
+      - name: Get the previous and current push hashes
+        id: push_hashes
         run: |
-         docker_context_hash=$(find . -type f -not -path './.git/*' -exec sha256sum {} \; | sha256sum | cut -d ' ' -f 1)
-         echo "docker_context_hash=${docker_context_hash}" >> $GITHUB_ENV
+          latest_push_sha=$(git rev-parse HEAD)
+          previous_push_sha=$(git rev-parse HEAD~$(git rev-list --count HEAD))
 
-      # Step 5:  hash of previously docker image
-      - name: Get previous context hash from ECR
-        run: |
-          last_image_hash=$(aws ecr describe-images --repository-name ${{ secrets.ECR_REPOSITORY }} --query 'imageDetails[?imageTags[0]==`latest`].imageDigest' --output text)
-          echo "last_image_hash=${last_image_hash}" >> $GITHUB_ENV
+          echo "latest_push_sha=$latest_push_sha" >> $GITHUB_ENV
+          echo "previous_push_sha=$previous_push_sha" >> $GITHUB_ENV
 
-      # Step 6: Compare the hashes
-      - name: determine if push is needed
-        id: compare_digests
+      # Step 5: list changed files between last two pushes excluding certain files
+      - name: Check for changes to relevant files between pushes
+        id: check_changes
         run: |
-          if [ "$docker_context_hash" != "$last_image_hash" ]; then
-            echo "Docker context has changed. Pushing new image."
-            echo "push_image=true" >> $GITHUB_ENV
+          changed_files=$(git diff --name-only ${{ env.previous_push_sha }} ${{ env.latest_push_sha }} | \
+            grep -Ev '(^\.github/workflows$|^\.dockerignore$|^\.DS_Store$|^README\.md$)')
+          echo "changed_files=$changed_files" >> $GITHUB_ENV
+
+      # Step 6: 
+      - name: set variable if docker files changed
+        id: difference_in_files
+        run: |
+          if echo "${{ env.changed_files }}" | grep -qE '(^Dockerfile$|^.*\.dockerignore$|^.*\.yml$)'; then
+            echo "Docker-related files have changed. Rebuilding the Docker image."
+            echo "build_and_push=true" >> $GITHUB_ENV
           else
-            echo "No changes in Docker context. Skipping push."
-            echo "push_image=false" >> $GITHUB_ENV
+            echo "No changes to Docker-related files. Skipping build."
+            echo "build_and_push=false" >> $GITHUB_ENV
           fi
-          echo "::set-output name=push_image::$(echo $push_image)"
+          echo "::set-output name=build_and_push::$(echo $build_and_push)"
 
       # Step 7: Build and Push Docker Image if Needed
       - name: Build Docker image and push to ECR if changed
-        if: steps.compare_digests.outputs.push_image == 'true'
+        if: steps.difference_in_files.outputs.build_and_push == 'true'
         run: |
           docker build -t ${{ secrets.ECR_REPOSITORY }}:latest .
           docker tag ${{ secrets.ECR_REPOSITORY }}:latest ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.ECR_REPOSITORY }}:latest
