@@ -30,7 +30,13 @@ jobs:
         run: |
           docker build -t ${{ secrets.ECR_REPOSITORY }}:latest .
       
-      - name: Get the image digest of the latest image in ECR
+      - name: get image digest of new built docker image
+        id: get_new_image_digest
+        run: |
+          new_image_digest=$(docker images --digests ${{ secrets.ECR_REPOSITORY }}:latest --format "{{.Digest}}")
+          echo "new_image_digest=${new_image_digest}" >> $GITHUB_ENV
+
+      - name: get image digest of latest docker image in ECR
         id: get_digest
         run: |
           latest_image_digest=$(aws ecr describe-images \
@@ -43,28 +49,17 @@ jobs:
               latest_image_digest=""
             fi
             echo "latest_image_digest=${latest_image_digest}" >> $GITHUB_ENV
-  
-      - name: Get the image digest of the newly built image
-        id: get_new_image_digest
-        run: |
-          # Get the digest of the newly built Docker image
-          new_image_digest=$(docker images --digests ${{ secrets.ECR_REPOSITORY }}:latest --format "{{.Digest}}")
-          
-          # Save the digest to environment variable
-          echo "new_image_digest=${new_image_digest}" >> $GITHUB_ENV
 
       - name: Compare digests and decide if push is needed
         id: compare_digests
         run: |
-          # Compare the digests of the current image in ECR and the new locally built image
           if [ "$latest_image_digest" != "$new_image_digest" ]; then
             echo "Image has changed. Pushing new image."
             echo "push_image=true" >> $GITHUB_ENV
           else
             echo "No change in image. Skipping push."
             echo "push_image=false" >> $GITHUB_ENV
-          
-          # Set output for later use
+          fi
           echo "::set-output name=push_image::$(echo $push_image)"
 
       - name: Push Docker image to ECR if changed
