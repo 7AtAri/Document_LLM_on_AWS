@@ -41,21 +41,22 @@ jobs:
           echo "latest_push_sha=$latest_push_sha" >> $GITHUB_ENV
           echo "previous_push_sha=$previous_push_sha" >> $GITHUB_ENV
 
-      - name: Check for changes to Docker-relevant files
+      - name: Check for changes to relevant files
         id: check_changes
         run: |
           changed_files=$(git diff --name-only ${{ env.previous_push_sha }} ${{ env.latest_push_sha }} | \
             grep -Ev '(^\.github/workflows/|^\.dockerignore$|^\.DS_Store$|^README\.md$)')
-          
+      
+          echo "changed_files=$changed_files"
           echo "changed_files=$changed_files" >> $GITHUB_ENV
       
           if [ -n "$changed_files" ]; then
             echo "build_and_push=true" >> $GITHUB_ENV
+            echo "build_and_push=true" >> $GITHUB_OUTPUT
           else
             echo "build_and_push=false" >> $GITHUB_ENV
+            echo "build_and_push=false" >> $GITHUB_OUTPUT
           fi
-      
-          echo "::set-output name=build_and_push::$(echo $build_and_push)"
 
       # Step 7: Build and Push Docker Image if Needed
       - name: Build Docker image and push to ECR if changed
