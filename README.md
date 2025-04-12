@@ -60,11 +60,15 @@ with AmazonS3ReadOnlyAccess permission
 ## github action workflow
 
 - github action workflow is set up to automate the process and start the ECS deployment of the container
-- the new task definition within the actions workflow needs to have these parameters:
+- if application code changes (except for README, .dockerignore and github workflow files) the container is rebuilt and pushed to the ECR
+- if anything is pushed on the github repo, this triggers the deployment of the code on AWS ECS
+
+The new task definition within the actions workflow needs to have these parameters:
 
 ```bash
 family: .family,
-containerDefinitions: .containerDefinitions, requiresCompatibilities: ["FARGATE"], 
+containerDefinitions: .containerDefinitions, 
+requiresCompatibilities: ["FARGATE"], 
 networkMode: "awsvpc", 
 executionRoleArn: .executionRoleArn, 
 taskRoleArn: .taskRoleArn, 
@@ -72,5 +76,8 @@ cpu: .cpu,
 memory: .memory
 ```
 
-the parameters that are not hardcoded need to be set
-up in first in AWS ECS - Task Definitions
+The following parameters that are not hardcoded need to be set
+up in first in AWS ECS - Task Definitions:
+
+- for cpu: 2vCPU are recommended
+- for memory: 5GB are recommended
