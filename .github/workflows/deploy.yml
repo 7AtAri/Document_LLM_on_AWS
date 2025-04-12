@@ -51,14 +51,13 @@ jobs:
             grep -Ev '(^\.github/workflows/|^\.dockerignore$|^\.DS_Store$|^README\.md$)' || true)
       
           echo "changed_files=$changed_files"
-          echo "changed_files=$changed_files" >> $GITHUB_ENV
       
-          if [ -n "$changed_files" ]; then
-            echo "build_and_push=true" >> $GITHUB_ENV
-            echo "build_and_push=true" >> $GITHUB_OUTPUT
-          else
+          if [ -z "$changed_files" ]; then
             echo "build_and_push=false" >> $GITHUB_ENV
             echo "build_and_push=false" >> $GITHUB_OUTPUT
+          else
+            echo "build_and_push=true" >> $GITHUB_ENV
+            echo "build_and_push=true" >> $GITHUB_OUTPUT
           fi
 
       # Step 7: Build and Push Docker Image if Needed
