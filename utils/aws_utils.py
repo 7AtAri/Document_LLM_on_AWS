@@ -1,6 +1,7 @@
 import boto3
 from pathlib import Path
 import requests
+import os
 
 def download_model_from_s3(bucket: str, S3path: str, local_dir: str):
     """
@@ -28,10 +29,15 @@ def download_model_from_s3(bucket: str, S3path: str, local_dir: str):
 
 
 def is_running_on_aws():
+    # for ECS Fargate:
+    if os.environ.get("AWS_CONTAINER_CREDENTIALS_RELATIVE_URI"):
+        return True
+    # for EC2:
     try:
         return requests.get("http://169.254.169.254/latest/meta-data/", timeout=0.2).ok
     except requests.exceptions.RequestException:
         return False
+    
 
 def download_model_if_on_aws(bucket_name: str, S3_model_path: str, local_model_path: str):
     """loads from S3"""
