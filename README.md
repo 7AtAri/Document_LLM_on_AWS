@@ -6,7 +6,7 @@
 - S3 (for storage)
 - ECS Fargate (for deployment of containers)
 
-## framework / tools
+## Frameworks / Tools
 
 - llamaindex (for RAG)
 - Faiss ()
@@ -57,7 +57,7 @@ docker run -v /path/to/local/files:mount/path <image_name>
 with AmazonS3ReadOnlyAccess permission
 (this is needed for the container to get credentials for the S3 buckets)
 
-## github action workflow
+## Github Action Workflow
 
 - github action workflow is set up to automate the process and start the ECS deployment of the container
 - if application code changes (except for README, .dockerignore and github workflow files) the container is rebuilt and pushed to the ECR
