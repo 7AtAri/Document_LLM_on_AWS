@@ -4,7 +4,7 @@
 
 - ECR (Elastic Cloud Repository) for docker containers
 - S3 (for storage)
-- Fargate (for deployment of containers)
+- ECS Fargate (for deployment of containers)
 
 ## framework / tools
 
@@ -44,8 +44,33 @@ this should output: Login Succeeded
 docker push <aws_ID...amazonaws.com>
 ```
 
-- set up ECS Fargate with proper compute and the docker image-URI
+- for local development build the docker with file mount:
+
+```bash
+docker run -v /path/to/local/files:mount/path <image_name>
+```
+
+- set up ECS Fargate with proper compute (1 CPU with max 5GB should be enough for the start) and the docker image-URI
 - set up an S3 bucket for the project and upload the model to it
 - in the IAM the ecsTaskExecutionRole needs to be selected and an AmazonS3ReadOnlyAccess permission attatched to it
-(this is needed for the container to read from the S3 buckets)
+- a TaskRole needs to be set up (self configured),
+with AmazonS3ReadOnlyAccess permission
+(this is needed for the container to get credentials for the S3 buckets)
+
+## github action workflow
+
 - github action workflow is set up to automate the process and start the ECS deployment of the container
+- the new task definition within the actions workflow needs to have these parameters:
+
+```bash
+family: .family,
+containerDefinitions: .containerDefinitions, requiresCompatibilities: ["FARGATE"], 
+networkMode: "awsvpc", 
+executionRoleArn: .executionRoleArn, 
+taskRoleArn: .taskRoleArn, 
+cpu: .cpu, 
+memory: .memory
+```
+
+the parameters that are not hardcoded need to be set
+up in first in AWS ECS - Task Definitions

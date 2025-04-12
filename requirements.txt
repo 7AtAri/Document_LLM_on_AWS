@@ -2,5 +2,10 @@ torch
 transformers
 boto3
 sentence-transformers
+llama-index
+faiss-cpu
+streamlit
+#safetensors
+#protobuf
 #langchain
-#faiss-cpu
+#sentencepiece

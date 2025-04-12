@@ -1,88 +1,25 @@
 import os
-import boto3
 import torch
-from transformers import LlamaTokenizer, LlamaForCausalLM
-from pathlib import Path
+import boto3
+import requests
+import time
+from utils.aws_utils import download_model_if_on_aws
+from utils.model_utils import load_model
 
-def print_all_env_variables():
-    # Get all environment variables as a dictionary
-    env_vars = os.environ
-    
-    # Print all environment variables and their values
-    for key, value in env_vars.items():
-        print(f"{key}={value}")
-
-# Call the function to print all environment variables
-print_all_env_variables()
-
-def check_boto3_credentials():
-    session = boto3.Session()
-    credentials = session.get_credentials()
-    current_credentials = credentials.get_frozen_credentials()
-
-    print("Boto3 AWS Access Key ID:", current_credentials.access_key)
-    print("Boto3 AWS Secret Access Key:", current_credentials.secret_key)
-    print("Boto3 AWS Session Token:", current_credentials.token)
-
-# Check what boto3 is using
-check_boto3_credentials()
-
-def print_filesystem_tree(root_dir):
-    for dirpath, dirnames, filenames in os.walk(root_dir):
-        # Print the current directory path
-        print(f"Directory: {dirpath}")
-        # Print the list of directories inside the current directory
-        print(f"Subdirectories: {dirnames}")
-        # Print the list of files inside the current directory
-        print(f"Files: {filenames}")
-        print("-" * 40)
-
-# Print the tree of the filesystem starting from the root
-print_filesystem_tree("/app")  # assuming /app is the root of your container filesystem
-
-# to connect to S3 (AWS storage)
-s3_client = boto3.client('s3')
-print("Connected to S3")
 
 # define S3 related variables
 S3_BUCKET_NAME = 'doc-task-bucket-1'
-MODEL_PATH = 'models/llama_model_hf/'
-
-def download_model_from_s3(bucket, prefix, local_dir):
-    paginator = s3_client.get_paginator("list_objects_v2")
-    try:
-        for page in paginator.paginate(Bucket=bucket, Prefix=prefix):
-            keys = [obj["Key"] for obj in page.get("Contents", [])]
-            for key in keys:
-                relative_path = Path(key).relative_to(prefix)
-                target_path = Path(local_dir) / relative_path
-                target_path.parent.mkdir(parents=True, exist_ok=True)
-                try:
-                    s3_client.download_file(bucket, key, str(target_path))
-                except Exception as e:
-                    print(f"download of {key} failed because of: {e}")
-    except Exception as e:
-        print(f"Error while downloading model from S3: {e}")
-
-def load_model(model_path):
-    # loading tokenizer and model
-    tokenizer = LlamaTokenizer.from_pretrained(model_path)
-    model = LlamaForCausalLM.from_pretrained(model_path, torch_dtype=torch.float32).to("cpu")
-    
-    if torch.cuda.is_available():
-        model = model.to('cuda')
-
-    print(f"Model and tokenizer loaded")
-    
-    return tokenizer, model
+S3_MODEL_PATH = 'models/llama_model_hf/'
+LOCAL_MODEL_PATH = 'models/llama_model_hf/'
 
 def main():
     print("Running app test!")
-    # download the model from S3
-    download_model_from_s3(S3_BUCKET_NAME, MODEL_PATH, 'models/llama_model_hf')
-    
+
+    # if running on AWS, download the model from S3
+    download_model_if_on_aws(S3_BUCKET_NAME, S3_MODEL_PATH, LOCAL_MODEL_PATH)
+
     # load the model
-    tokenizer, model = load_model('models/llama_model_hf')
+    tokenizer, model = load_model(LOCAL_MODEL_PATH)
     
     # test the model with a sample input
     input_text = "Tell me a joke!"
@@ -93,7 +30,9 @@ def main():
     
     output_text = tokenizer.decode(outputs[0], skip_special_tokens=True)
     print(f"Output: {output_text}")
+    time.sleep(10)
 
 
 if __name__ == "__main__":
     main()
+
