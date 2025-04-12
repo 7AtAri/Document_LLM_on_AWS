@@ -5,7 +5,7 @@ import requests
 import time
 from utils.aws_utils import download_model_if_on_aws
 from utils.model_utils import load_model
-
+from utils.container_checks import print_all_env_variables
 
 # define S3 related variables
 S3_BUCKET_NAME = 'doc-task-bucket-1'
@@ -14,7 +14,7 @@ LOCAL_MODEL_PATH = 'models/llama_model_hf/'
 
 def main():
     print("Running app test!")
-
+    print_all_env_variables()
     # if running on AWS, download the model from S3
     download_model_if_on_aws(S3_BUCKET_NAME, S3_MODEL_PATH, LOCAL_MODEL_PATH)
 
