@@ -16,7 +16,7 @@ def download_s3_folder(bucket: str, s3_path: str, destination_dir: str):
         for page in paginator.paginate(Bucket=bucket, Prefix=s3_path):
             keys = [obj["Key"] for obj in page.get("Contents", [])]
             for key in keys:
-                if key.endswith("documents/"):
+                if key.endswith("/"):
                     print(f"Skipping directory placeholder: {key}")
                     continue
                 relative_path = Path(key).relative_to(s3_path)

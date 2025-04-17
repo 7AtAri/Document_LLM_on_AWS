@@ -16,14 +16,14 @@ def main(s3_bucket_name, s3_model_path, s3_docs_folder, s3_embedding_model_path,
     #print_all_env_variables()
 
     # if running on AWS, download the model from S3
-    download_data_if_on_aws(s3_bucket_name, s3_model_path, s3_model_path)
+    download_data_if_on_aws(s3_bucket_name, s3_model_path, local_model_path)
     download_data_if_on_aws(s3_bucket_name, s3_docs_folder, local_docs_folder)
     download_data_if_on_aws(s3_bucket_name, s3_embedding_model_path, s3_embedding_model_path)
 
     # debug-check if model is available locally
-    print(f"Model path: {local_model_path}")
-    print(f"Exists: {os.path.exists(local_model_path)}")
-    print(f"Size: {os.path.getsize(local_model_path) / (1024 * 1024):.2f} MB")
+    print(f"Model path: {local_model}")
+    print(f"Exists: {os.path.exists(local_model)}")
+    print(f"Size: {os.path.getsize(local_model) / (1024 * 1024):.2f} MB")
 
     # loading model and retriever
     llm = load_llm(local_model)
