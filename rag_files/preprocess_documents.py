@@ -55,9 +55,10 @@ def reduce_embeddings(embedding_index, similarity_threshold=0.9):
 
 
 # === PREPROCESS DOCS ===
-def preprocess_documents(documents, save_preprocessed=False):
+def preprocess_documents(documents, local_embedding_model_path , save_preprocessed=False):
     splitted_docs = chunk_documents(documents)
-    embedding_model = HuggingFaceEmbeddings(model_name=EMBEDDING_MODEL_NAME)
+    #embedding_model = HuggingFaceEmbeddings(model_name=EMBEDDING_MODEL_NAME)
+    embedding_model = HuggingFaceEmbeddings(model_name=local_embedding_model_path)
     embedding_vectors = FAISS.from_documents(splitted_docs, embedding_model)
 
     if save_preprocessed:

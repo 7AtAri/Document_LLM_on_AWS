@@ -26,7 +26,8 @@ def download_s3_folder(bucket: str, s3_path: str, destination_dir: str):
                     s3_client.download_file(bucket, key, str(target_path))
                 except Exception as e:
                     print(f"Download of {key} failed: {e}")
-                print("Downloaded model folder contents:")
+                    
+        print("Downloaded model folder contents:")
         for path in Path(destination_dir).rglob("*"):
             print(path)
     except Exception as e:

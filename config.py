@@ -4,7 +4,8 @@ S3_BUCKET_NAME = 'doc-task-bucket-1'
 
 # llama-cpp model related variables
 S3_MODEL_PATH = 'models/llama_cpp/'
-LOCAL_MODEL_PATH= "models/llama_cpp/Llama-3.2-1B-Instruct-Q8_0.gguf"
+LOCAL_MODEL_PATH= "models/llama_cpp/"
+LOCAL_MODEL="models/llama_cpp/Llama-3.2-1B-Instruct-Q8_0.gguf"
 DOCS_FOLDER = "./documents"
 S3_DOCS_FOLDER = 'documents/'
 S3_EMBEDDING_MODEL_PATH = "models/models--sentence-transformers--paraphrase-multilingual-MiniLM-L12-v2/"
@@ -20,3 +21,4 @@ FAISS_INDEX_PATH = "vector_db/faiss_index"
 TASK ="qa" # current options: qa           # summarize, chat, refine, sources are still in development
 CHUNK_SIZE = 300  # 300 recommended for qa (if context length of model is only 512)
 QUESTION = "In welchen Bereichen soll die Digitalisierung vorangebracht werden?"
+
