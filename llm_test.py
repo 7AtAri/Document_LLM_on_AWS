@@ -1,38 +1,20 @@
-import os
-import torch
-import boto3
-import requests
-import time
-from utils.aws_utils import download_model_if_on_aws
-from utils.model_utils import load_model
-from utils.container_checks import print_all_env_variables
+from utils.model_cpp_setup import load_llm
+from config import LOCAL_MODEL_PATH
 
-# define S3 related variables
-S3_BUCKET_NAME = 'doc-task-bucket-1'
-S3_MODEL_PATH = 'models/llama_model_hf/'
-LOCAL_MODEL_PATH = 'models/llama_model_hf/'
-
-def main():
-    print("Running app test!")
-    print_all_env_variables()
-    # if running on AWS, download the model from S3
-    download_model_if_on_aws(S3_BUCKET_NAME, S3_MODEL_PATH, LOCAL_MODEL_PATH)
-
-    # load the model
-    tokenizer, model = load_model(LOCAL_MODEL_PATH)
+def generate_text(llama, prompt):
+    # Generate text using the loaded LLaMA model
+    response = llama(prompt, 
+                                max_tokens=100,
+                                temperature=0.7, 
+                                stop=["<|eot_id>|"])
     
-    # test the model with a sample input
-    input_text = "Tell me a joke!"
-    inputs = tokenizer(input_text, return_tensors="pt").to(model.device)
-    
-    with torch.no_grad():
-        outputs = model.generate(**inputs)
-    
-    output_text = tokenizer.decode(outputs[0], skip_special_tokens=True)
-    print(f"Output: {output_text}")
-    time.sleep(10)
+    return response
 
+# Load the LLM
+llama = load_llm(LOCAL_MODEL_PATH)
 
-if __name__ == "__main__":
-    main()
+# Example prompt to generate text
+prompt = "Tell me a joke"
+output = generate_text(llama, prompt)
 
+print(output["choices"][0]["text"].strip())

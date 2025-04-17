@@ -8,11 +8,81 @@
 
 ## Frameworks / Tools
 
-- llamaindex (for RAG)
-- Faiss ()
-- Langchain (for possible future development)
+- Embedding Model
+- Faiss (in-memory vector store & search)
+- Langchain (for RAG)
 
-## Commands
+## RAG
+
+Retrieval augmented generation with task specification options:
+
+- default: Q&A (with cosine similarity)
+
+for future development and models with larger context lenth:
+
+- "sources" (Q&A with sources - with similarity_score_threshold)
+- "summarize" (with maximum marginal relevance)
+- "refine" (summarize short and precise - with cosine similarity)
+- "chat" (with memory - and dynamic mmr)
+
+## UI
+
+under development...
+for now, the question is hardcoded in llm_rag.py
+
+## Models
+
+For efficient use with an AWS Free Tier account, the setup can be used with
+small models, which works well, but impacts the quality of the RAG.
+The used models are sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2 as
+Emebdding Model and Llama-3.2-1B-Instruct as Tiny LLM.
+
+They can be downloaded from huggingface and uploaded to S3:
+
+- [EMBEDDING MODEL](https://huggingface.co/sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2)
+- [Tiny LLM](https://huggingface.co/bartowski/Llama-3.2-1B-Instruct-GGUF)
+
+The workflow is setup to be plug and play for different models.
+To run the models locally or on a paid AWS account, you can
+use it with bigger models, especially with an LLM with larger context length
+and better multilingual support.
+
+## Github Action Workflow
+
+- github action workflow is set up to automate the process and start the ECS deployment of the container
+- if application code changes (except for README, .dockerignore and github workflow files) the container is rebuilt and pushed to the ECR
+- if anything is pushed on the github repo, this triggers the deployment of the code on AWS ECS
+
+SETUP on AWS:
+
+- set up ECS Fargate with proper compute (1 CPU with max 5GB should be enough for the start) and the docker image-URI
+- set up an S3 bucket for the project and upload the model to it
+- in the IAM the ecsTaskExecutionRole needs to be selected and an AmazonS3ReadOnlyAccess permission attatched to it
+- a TaskRole needs to be set up (self configured),
+with AmazonS3ReadOnlyAccess permission
+(this is needed for the container to get credentials for the S3 buckets)
+
+The new task definition within the actions workflow needs to be set with the following parameters:
+
+```bash
+family: .family,
+containerDefinitions: .containerDefinitions, 
+requiresCompatibilities: ["FARGATE"], 
+networkMode: "awsvpc", 
+executionRoleArn: .executionRoleArn, 
+taskRoleArn: .taskRoleArn, 
+cpu: .cpu, 
+memory: .memory
+```
+
+Check my github action yml file on how to do this.
+Some parameters are not hardcoded and can also be set
+up in first in AWS ECS - Task Definitions:
+
+- for cpu: 2vCPU are recommended
+- for memory: 5-7GB are recommended
+
+## Commands for manual upload of the docker container
 
 - build docker container
 
@@ -49,35 +119,3 @@ docker push <aws_ID...amazonaws.com>
 ```bash
 docker run -v /path/to/local/files:mount/path <image_name>
 ```
-
-- set up ECS Fargate with proper compute (1 CPU with max 5GB should be enough for the start) and the docker image-URI
-- set up an S3 bucket for the project and upload the model to it
-- in the IAM the ecsTaskExecutionRole needs to be selected and an AmazonS3ReadOnlyAccess permission attatched to it
-- a TaskRole needs to be set up (self configured),
-with AmazonS3ReadOnlyAccess permission
-(this is needed for the container to get credentials for the S3 buckets)
-
-## Github Action Workflow
-
-- github action workflow is set up to automate the process and start the ECS deployment of the container
-- if application code changes (except for README, .dockerignore and github workflow files) the container is rebuilt and pushed to the ECR
-- if anything is pushed on the github repo, this triggers the deployment of the code on AWS ECS
-
-The new task definition within the actions workflow needs to have these parameters:
-
-```bash
-family: .family,
-containerDefinitions: .containerDefinitions, 
-requiresCompatibilities: ["FARGATE"], 
-networkMode: "awsvpc", 
-executionRoleArn: .executionRoleArn, 
-taskRoleArn: .taskRoleArn, 
-cpu: .cpu, 
-memory: .memory
-```
-
-The following parameters that are not hardcoded need to be set
-up in first in AWS ECS - Task Definitions:
-
-- for cpu: 2vCPU are recommended
-- for memory: 5GB are recommended

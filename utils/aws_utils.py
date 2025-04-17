@@ -3,29 +3,28 @@ from pathlib import Path
 import requests
 import os
 
-def download_model_from_s3(bucket: str, S3path: str, local_dir: str):
-    """
-    Download a model from S3 bucket to local directory.
+def download_s3_folder(bucket: str, s3_path: str, destination_dir: str):
+    """Download a folder from an S3 bucket to a local directory.
     Args:
-        bucket (str): S3 bucket name
-        S3path (str): path to the model on S3
-        local_dir (str): directory to save the downloaded model
+        bucket (str): Name of the S3 bucket.
+        s3_prefix (str): S3 prefix (folder path) to download.
+        destination_dir (str): Local directory to save the downloaded files.
     """
     s3_client = boto3.client('s3') # to connect to S3 (AWS storage)
     paginator = s3_client.get_paginator("list_objects_v2")
     try:
-        for page in paginator.paginate(Bucket=bucket, Prefix=S3path):
+        for page in paginator.paginate(Bucket=bucket, Prefix=s3_path):
             keys = [obj["Key"] for obj in page.get("Contents", [])]
             for key in keys:
-                relative_path = Path(key).relative_to(S3path)
-                target_path = Path(local_dir) / relative_path
+                relative_path = Path(key).relative_to(s3_path)
+                target_path = Path(destination_dir) / relative_path
                 target_path.parent.mkdir(parents=True, exist_ok=True)
                 try:
                     s3_client.download_file(bucket, key, str(target_path))
                 except Exception as e:
-                    print(f"download of {key} failed because of: {e}")
+                    print(f"Download of {key} failed: {e}")
     except Exception as e:
-        print(f"Error while downloading model from S3: {e}")
+        print(f"Error while downloading from S3  '{s3_path}': {e}")
 
 
 def is_running_on_aws():
@@ -42,11 +41,11 @@ def is_running_on_aws():
         return False
     
 
-def download_model_if_on_aws(bucket_name: str, S3_model_path: str, local_model_path: str):
+def download_data_if_on_aws(bucket_name: str, S3_model_path: str, local_model_path: str):
     """loads from S3"""
     if is_running_on_aws():
         try:
-            download_model_from_s3(bucket_name, S3_model_path, local_model_path)
+            download_s3_folder(bucket_name, S3_model_path, local_model_path)
         except requests.exceptions.RequestException:
             print("encountered an error while downloading model from S3")
     else:

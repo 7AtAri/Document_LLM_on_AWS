@@ -4,12 +4,12 @@ huggingface-token.txt
 
 # folders
 .venv
-Llama-3.2-1B-Instruct
-Dockerfiles
 app_files
 keys
-#container_checks
-llama_model_hf
+models
+old_documents
+documents
+faiss_index
 
 # files
 *.safetensors
@@ -24,9 +24,11 @@ llama_model_hf
 *.tar.gz
 *.whl
 
+output.txt
+
 # other
 __pycache__/
-.DS_Store
+*.DS_Store
 .env
 .venv/
 .git/

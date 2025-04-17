@@ -13,7 +13,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 #RUN pip install --no-cache-dir -r requirements.txt
 
 # (eventually) expose the port 
-EXPOSE 80
+#EXPOSE 80
 
 # start the application
-CMD ["python", "llm_test.py"]
+CMD ["python", "llm_rag.py"]
