@@ -15,7 +15,7 @@ def main(s3_bucket_name, s3_model_path, s3_docs_folder, s3_embedding_model_path,
     print("Running app test!")
     #print_all_env_variables()
 
-    # if running on AWS, download the model from S3
+    # if running on AWS, download the model, the documents and the embedding model from S3
     download_data_if_on_aws(s3_bucket_name, s3_model_path, local_model_path)
     download_data_if_on_aws(s3_bucket_name, s3_docs_folder, local_docs_folder)
     download_data_if_on_aws(s3_bucket_name, s3_embedding_model_path, s3_embedding_model_path)
