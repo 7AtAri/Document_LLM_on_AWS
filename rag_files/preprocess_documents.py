@@ -25,7 +25,7 @@ def load_all_documents(folder_path, add_metadata=False):
                 loader = TextLoader(file_path, encoding="utf-8")
             else:
                 continue
-            
+
             loaded_docs = loader.load()
 
             if add_metadata:
@@ -53,14 +53,12 @@ def chunk_documents(documents):
 def reduce_embeddings(embedding_index, similarity_threshold=0.9):
     ...
 
-
 # === PREPROCESS DOCS ===
 def preprocess_documents(documents, local_embedding_model_path , save_preprocessed=False):
     splitted_docs = chunk_documents(documents)
     #embedding_model = HuggingFaceEmbeddings(model_name=EMBEDDING_MODEL_NAME)
     embedding_model = HuggingFaceEmbeddings(model_name=local_embedding_model_path)
     embedding_vectors = FAISS.from_documents(splitted_docs, embedding_model)
-
     if save_preprocessed:
         embedding_vectors.save_local(FAISS_INDEX_PATH)
     return embedding_vectors

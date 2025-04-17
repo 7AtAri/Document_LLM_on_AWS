@@ -12,8 +12,6 @@ S3_EMBEDDING_MODEL_PATH = "models/models--sentence-transformers--paraphrase-mult
 LOCAL_EMBEDDING_MODEL_PATH = "models/models--sentence-transformers--paraphrase-multilingual-MiniLM-L12-v2/snapshots/86741b4e3f5cb7765a600d3a3d55a0f6a6cb443d"
 
 # RAG related variables
-#EMBEDDING_MODEL_NAME ="models/models--sentence-transformers--paraphrase-multilingual-MiniLM-L12-v2/"
-#EMBEDDING_MODEL_NAME = "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2"
 EMBEDDING_MODEL_NAME = "models/sentence_transformer_paraphrase-multilingual-MiniLM-L12-v2/snapshots/86741b4e3f5cb7765a600d3a3d55a0f6a6cb443d"
 FAISS_INDEX_PATH = "vector_db/faiss_index"
 

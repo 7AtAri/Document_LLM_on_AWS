@@ -32,10 +32,10 @@ for now, the question is hardcoded in llm_rag.py
 
 ## Models
 
-For efficient use with an AWS Free Tier account, the setup can be used with
-small models, which works well, but impacts the quality of the RAG.
+For efficient use with an AWS Free Tier account, the setup can be used with small models, which works well, but impacts the quality of the RAG.
 The used models are sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2 as
 Emebdding Model and Llama-3.2-1B-Instruct as Tiny LLM.
+Unfortunately, the used Llama-3.2-1B-Instruct only generates poorly in German. For better German language skills, choose a different model.
 
 They can be downloaded from huggingface and uploaded to S3:
 
