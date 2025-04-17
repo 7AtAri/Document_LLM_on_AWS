@@ -7,7 +7,7 @@ def download_s3_folder(bucket: str, s3_path: str, destination_dir: str):
     """Download a folder from an S3 bucket to a local directory.
     Args:
         bucket (str): Name of the S3 bucket.
-        s3_prefix (str): S3 prefix (folder path) to download.
+        s3_path (str): S3 Path (folder path) to download.
         destination_dir (str): Local directory to save the downloaded files.
     """
     s3_client = boto3.client('s3') # to connect to S3 (AWS storage)
@@ -16,6 +16,9 @@ def download_s3_folder(bucket: str, s3_path: str, destination_dir: str):
         for page in paginator.paginate(Bucket=bucket, Prefix=s3_path):
             keys = [obj["Key"] for obj in page.get("Contents", [])]
             for key in keys:
+                if key.endswith("/"):
+                    print(f"Skipping directory placeholder: {key}")
+                    continue
                 relative_path = Path(key).relative_to(s3_path)
                 target_path = Path(destination_dir) / relative_path
                 target_path.parent.mkdir(parents=True, exist_ok=True)
