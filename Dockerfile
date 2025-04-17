@@ -4,6 +4,11 @@ FROM python:3.12-slim
 # working directory for the application
 WORKDIR /app
 
+# Install dependencies
+RUN apt-get update && apt-get install -y \
+    cmake build-essential git wget curl \
+    && rm -rf /var/lib/apt/lists/*
+    
 # for AWS deployment:
 COPY . /app
 RUN pip install --no-cache-dir -r requirements.txt
