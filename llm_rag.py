@@ -1,7 +1,7 @@
 
 import time
 import os
-from config import S3_BUCKET_NAME, S3_MODEL_PATH, LOCAL_MODEL_PATH, DOCS_FOLDER, TASK, S3_DOCS_FOLDER, QUESTION, S3_EMBEDDING_MODEL_PATH, LOCAL_EMBEDDING_MODEL_PATH
+from config import S3_BUCKET_NAME, S3_MODEL_PATH, LOCAL_MODEL_PATH, DOCS_FOLDER, TASK, S3_DOCS_FOLDER, QUESTION, S3_EMBEDDING_MODEL_PATH, LOCAL_EMBEDDING_MODEL_PATH, LOCAL_MODEL
 from utils.aws_utils import download_data_if_on_aws
 from utils.model_cpp_setup import load_llm
 from rag_files.preprocess_documents import preprocess_documents, load_all_documents, load_vector_storage
@@ -10,7 +10,7 @@ from utils.task_dependencies import get_result_for_task
 #from utils.container_checks import print_all_env_variables
 
 def main(s3_bucket_name, s3_model_path, s3_docs_folder, s3_embedding_model_path,
-                local_model_path, local_docs_folder, local_embedding_model_path,
+                local_model_path, local_docs_folder, local_embedding_model_path, local_model,
                 task, question):
     print("Running app test!")
     #print_all_env_variables()
@@ -26,7 +26,7 @@ def main(s3_bucket_name, s3_model_path, s3_docs_folder, s3_embedding_model_path,
     print(f"Size: {os.path.getsize(local_model_path) / (1024 * 1024):.2f} MB")
 
     # loading model and retriever
-    llm = load_llm(local_model_path)
+    llm = load_llm(local_model)
 
     # load prepocessed embedding vectors if available
     # if not, load documents from folder and preprocess them
@@ -48,6 +48,6 @@ def main(s3_bucket_name, s3_model_path, s3_docs_folder, s3_embedding_model_path,
 
 if __name__ == "__main__":
     main(S3_BUCKET_NAME, S3_MODEL_PATH, S3_DOCS_FOLDER, S3_EMBEDDING_MODEL_PATH,
-                LOCAL_MODEL_PATH, DOCS_FOLDER, LOCAL_EMBEDDING_MODEL_PATH,
+                LOCAL_MODEL_PATH, DOCS_FOLDER, LOCAL_EMBEDDING_MODEL_PATH, LOCAL_MODEL,
                 TASK, QUESTION)
 

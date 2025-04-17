@@ -7,7 +7,7 @@ S3_MODEL_PATH = 'models/llama_cpp/'
 LOCAL_MODEL_PATH= "models/llama_cpp/"
 LOCAL_MODEL="models/llama_cpp/Llama-3.2-1B-Instruct-Q8_0.gguf"
 DOCS_FOLDER = "./documents"
-S3_DOCS_FOLDER = 'documents/'
+S3_DOCS_FOLDER = 'documents'
 S3_EMBEDDING_MODEL_PATH = "models/models--sentence-transformers--paraphrase-multilingual-MiniLM-L12-v2/"
 LOCAL_EMBEDDING_MODEL_PATH = "models/models--sentence-transformers--paraphrase-multilingual-MiniLM-L12-v2/snapshots/86741b4e3f5cb7765a600d3a3d55a0f6a6cb443d"
 
